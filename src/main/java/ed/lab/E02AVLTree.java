@@ -20,17 +20,17 @@ public class E02AVLTree<T> {
     }
 
     public void delete(T value) {
-
+        this.root = delete(this.root, value);
     }
 
     public T search(T value) {
-        Node<T> root = search(this.root, value);
+        Node<T> node = search(this.root, value);
 
-        if (root == null) {
+        if (node == null) {
             return null;
         }
 
-        return root.value;
+        return node.value;
     }
 
     public int height() {
@@ -44,7 +44,7 @@ public class E02AVLTree<T> {
     }
 
     private Node<T> search(Node<T> root, T value) {
-        if (this.root == null) {
+        if (root == null) {
             return null;
         }
 
@@ -64,15 +64,14 @@ public class E02AVLTree<T> {
     private Node<T> insert(Node<T> root, T value) {
         if (root == null) {
             this.size++;
-            return new Node<>(value);
+            return new Node<T>(value);
         }
 
         int compare = comparator.compare(value, root.value);
 
         if (compare < 0) {
             root.left = insert(root.left, value);
-        }
-        else if (compare > 0) {
+        } else if (compare > 0) {
             root.right = insert(root.right, value);
         } else {
             return root;
@@ -100,6 +99,69 @@ public class E02AVLTree<T> {
             return rotateLeft(root);
         }
 
+        return root;
+    }
+
+    private Node<T> delete(Node<T> root, T value) {
+        if (root == null) {
+            return null;
+        }
+
+        int compare = comparator.compare(value, root.value);
+
+        if (compare < 0) {
+            root.left = delete(root.left, value);
+        } else if (compare > 0) {
+            root.right = delete(root.right, value);
+        } else {
+            // Caso 1: sin hijos
+            if (root.left == null && root.right == null) {
+                this.size--;
+                return null;
+            }
+
+            // Caso 2: un hijo
+            if (root.left == null) {
+                this.size--;
+                return root.right;
+            }
+
+            if (root.right == null) {
+                this.size--;
+                return root.left;
+            }
+
+            // Caso 3: dos hijos
+            Node<T> sucesor = getMin(root.right);
+            root.value = sucesor.value;
+            root.right = delete(root.right, sucesor.value);
+        }
+
+        updateHeight(root);
+
+        int balance = getBalance(root);
+
+        if (balance < -1) {
+            if (getBalance(root.left) > 0) {
+                root.left = rotateLeft(root.left);
+            }
+            return rotateRight(root);
+        }
+
+        if (balance > 1) {
+            if (getBalance(root.right) < 0) {
+                root.right = rotateRight(root.right);
+            }
+            return rotateLeft(root);
+        }
+
+        return root;
+    }
+
+    private Node<T> getMin(Node<T> root) {
+        while (root.left != null) {
+            root = root.left;
+        }
         return root;
     }
 
